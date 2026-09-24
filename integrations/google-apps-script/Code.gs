@@ -61,3 +61,10 @@ function syncAllRows() {
     });
   });
 }
+
+// Google Apps Script editor compatibility helper.
+// If the editor is still showing "myFunction", selecting this function
+// will run the trigger installer and create the onFormSubmit trigger.
+function myFunction() {
+  installTrigger();
+}
