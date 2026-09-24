@@ -51,6 +51,8 @@ export default function GuildManager() {
 
   const load = async () => {
     setLoading(true);
+    // Google Sheets를 길드원 정보의 원본으로 사용하고, 페이지를 열거나 주기적으로 최신 시트를 Supabase에 반영합니다.
+    try { await fetch("/api/google-sheet/sync", { cache: "no-store" }); } catch {}
     const [{ data: members, error: membersError }, { data: records, error: recordsError }, { data: distributions, error: distributionError }, { data: memos, error: memosError }, { data: attendance, error: attendanceError }] = await Promise.all([
       supabase.from("members").select("*").order("name"),
       supabase.from("boss_records").select("*").order("date", { ascending: false }),
@@ -80,7 +82,8 @@ export default function GuildManager() {
       .on("postgres_changes", { event: "*", schema: "public", table: "admin_memos" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "attendance" }, load)
       .subscribe();
-    return () => { void supabase.removeChannel(channel); };
+    const timer = window.setInterval(() => { void load(); }, 60000);
+    return () => { window.clearInterval(timer); void supabase.removeChannel(channel); };
   }, []);
 
   const title = menus.find(m => m.key === active)?.label || "대시보드";
